@@ -9,11 +9,12 @@
 *
 * Room class for use with the CoffeeMakerQuest game.
 */
+import java.util.HashMap;
 
 public class Room
 {
 	private String name, furniture, item;
-	private ArrayList<Door> doors;
+	private HashMap<String, Door> doors;
 	private boolean hasItem;
 
 	public Room(String name, String furniture, String item)
@@ -27,7 +28,7 @@ public class Room
 		else
 			hasItem = true;
 
-		doors = new ArrayList<Door>();
+		doors = new HashMap<String, Door>();
 	}
 
 	public String getName()
@@ -40,23 +41,18 @@ public class Room
 		return furniture;
 	}
 
-	public String getDoors()
+	public Door getDoor(String direction)
+	{
+		return doors.get(direction);
+	}
+
+	public String printDoors()
 	{
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < doors.length; i++)
 			sb.append(doors[i].toString());
 
 		return sb.toString();
-	}
-
-	public String getDoorColor(int i)
-	{
-
-	}
-
-	public String getDoorDirection(int i)
-	{
-
 	}
 
 	public String getItem()
@@ -79,8 +75,23 @@ public class Room
 
 	public String getPrompt()
 	{
-		
+		StringBuilder sb = new StringBuilder();
+		sb.append("INSTRUCTIONS: (");
+		if (doors.containsKey("North"))
+			sb.append("N, ");
+		if (doors.containsKey("South"))
+			sb.append("S, ");
+
+		sb.append("L, I, D) > ");
+
+		return sb.toString();
 	}
+	
+	public void printPrompt()
+	{
+		System.out.print("\n" + getPrompt());
+	}
+
 
 	public String toString()
 	{
@@ -88,7 +99,7 @@ public class Room
 		StringBuilder sb = new StringBuilder();
 		sb.append("You see a " + name + " room.\n");
 		sb.append("It has a " + item + ".\n");
-		sb.append(getDoors());
+		sb.append(printDoors());
 		
 		return sb.toString();
 	}

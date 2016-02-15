@@ -15,16 +15,17 @@ public class Door
 	private String color, direction;
 	private Room behindDoor;
 
-	public Door(String color, String direction, Room behindDoor)
+	// direction must be one of North, South
+	public Door(String description, String direction, Room behindDoor)
 	{
-		this.color = color;
+		this.description = description;
 		this.direction = direction;
 		this.behindDoor = behindDoor;
 	}
 
-	public String getColor()
+	public String getDescription()
 	{
-		return color;
+		return description;
 	}
 
 	public String getDirection()
@@ -44,6 +45,6 @@ public class Door
 
 	public String toString()
 	{
-		return "A " + color + " leads " + direction + ".\n";
+		return "A " + description + " leads " + direction + ".\n";
 	}
 }
