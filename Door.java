@@ -12,39 +12,58 @@
 
 public class Door
 {
-	private String color, direction;
+	private String description, direction;
 	private Room behindDoor;
 
-	// direction must be one of North, South
+	/**
+	* Constructor
+	* direction must be one of NORTH, SOUTH, case insensitive
+	*/
 	public Door(String description, String direction, Room behindDoor)
 	{
 		this.description = description;
-		this.direction = direction;
+		this.direction = direction.toUpperCase();
 		this.behindDoor = behindDoor;
 	}
 
+	/**
+	* Returns the door description
+	*/
 	public String getDescription()
 	{
 		return description;
 	}
 
+	/**
+	* Returns the door direction
+	*/
 	public String getDirection()
 	{
 		return direction;
 	}
 
+	/**
+	* Returns the Room object linked behind the door
+	* Door objects, tied to each room, are the links between those rooms in the linked-list.
+	*/
 	public Room getBehindDoor()
 	{
 		return behindDoor;
 	}
 
+	/**
+	* Sets the passed Room object to be behind the door
+	*/
 	public void setBehindDoor(Room behindDoor)
 	{
 		this.behindDoor = behindDoor;
 	}
 
+	/**
+	* Returns the string reperesentation of the door
+	*/
 	public String toString()
 	{
-		return "A " + description + " leads " + direction + ".\n";
+		return "A " + description + " door leads " + direction + ".";
 	}
 }

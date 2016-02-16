@@ -24,23 +24,39 @@ public class CoffeeMakerQuest
     	String input = null;
 
     	// initialize the rooms
-    	initRooms();
+    	currRoom = initRooms();
 
-        System.out.println("\nWelcome to Coffee Maker Quest!\n");
+        System.out.println("\nWelcome to Coffee Maker Quest!");
 
-        while(true)
+        // main program loop, responsible for game iteration
+        boolean breakLoop = false;
+        while(!breakLoop)
         {
-        	currRoom.toString();
-        	currRoom.printPrompt();
+            System.out.println("");
+        	System.out.println(currRoom.toString());
+        	System.out.print(currRoom.getPrompt());
         	input = scan.nextLine();
-        	processInput(input);
+        	int breakVal = processInput(input);
+
+            if (breakVal >= 0)
+                breakLoop = true;
         }
+
+        scan.close();
+        System.exit(inventory);
 
     }
 
+    /**
+    * Initializes the linked-list of rooms used to play the game, and returns the head Room of the list
+    */
     public static Room initRooms()
     {
-    	Room temp1, temp2;
+    	Room temp1 = null;
+        Room temp2 = null;
+        Room firstRoom = null;
+
+        // hard-coded data for the rooms, could be implemented to read this data from a file for extensibility
     	String[] roomNames = {"Small", "Funny", "Refinanced", "Dumb", "Bloodthirsty", "Rough"};
     	String[] roomFurniture = {"quaint sofa", "sad record player", "tight pizza", "flat energy drink", "beautiful bag of money", "perfect air hockey table"};
     	String[] roomItems = {"creamy cream", null, "caffeinated coffee", null, null, "sweet sugar"};
@@ -52,92 +68,172 @@ public class CoffeeMakerQuest
 								{{"purple", "North"}, {"sandy", "South"}},
 								{{"minimalist", "South"}}};
 
+        // iterate through the room names, building them
     	for (int i = 0; i < roomNames.length; i++)
     	{
     		// create a new room and add it to the list
     		temp2 = new Room(roomNames[i], roomFurniture[i], roomItems[i]);
-    		for(int j = 0; j < roomDoors[i].length; j++)
+    		for (int j = 0; j < roomDoors[i].length; j++)
     		{
     			temp2.addDoor(new Door(roomDoors[i][j][0], roomDoors[i][j][1], null));
     		}
 
+            // if we are not at the beginning of the list
    			if (temp1 != null)
-   			{
-   				temp1.getDoor("North").setBehindDoor(temp2);
-   				currRoom = temp2;
-   			}
+   				temp1.getDoor("NORTH").setBehindDoor(temp2);
+            // if we are at the beginning of the list
+            else
+                firstRoom = temp2;
 
-   			temp2.getDoor("South").setBehindDoor(temp1);
+
+   			Door tempDoor = temp2.getDoor("SOUTH");
+            if (tempDoor != null)
+            {
+                tempDoor.setBehindDoor(temp1);
+            }
     		temp1 = temp2;
     	}
+
+        return firstRoom;
     }
 
-    public static void processInput(String input)
+    /**
+    * Processes the passed input and calls other methods to take the necessary actions
+    */
+    public static int processInput(String input)
     {
+        System.out.println("");
+
     	String lower = input.toLowerCase();
     	if (lower.equals("n"))
-    		move("North");
+    		System.out.print(move("NORTH"));
     	else if (lower.equals("s"))
-    		move("South");
+    		System.out.print(move("SOUTH"));
     	else if (lower.equals("l"))
-    		look(currRoom);
+    		System.out.print(look(currRoom));
     	else if (lower.equals("i"))
-    		printInventory(inventory);
+    		System.out.print(getInventory(inventory));
+        else if (lower.equals("h"))
+            System.out.print(getHelp());
     	else if (lower.equals("d"))
-    		endGame(inventory);
+    		return endGame(inventory);
     	else
     		System.out.println("What?");
+
+        return -1;
     }
 
-    public static void move(String direction)
+    /**
+    * Collects the item from the current room, if there is one, and adds it to the inventory.
+    * Returns a string to be displayed saying if something was found
+    */
+    public static String look(Room currentRoom)
+    {
+        // get the item from the Room
+        String item = currentRoom.getItem();
+        StringBuilder sb = new StringBuilder();
+        sb.append("You dig through all of the trash on the floor and find... \n");
+
+        // if an item existed in the room, add it to the inventory,
+        // remove it from the room, and build the string for return
+        if (item != null)
+        {
+            sb.append("some " + item + "!\n");
+            currentRoom.removeItem();
+            if (item.equals("caffeinated coffee"))
+                inventory += 0x0004;
+            else if (item.equals("sweet sugar"))
+                inventory += 0x0002;
+            else if (item.equals("creamy cream"))
+                inventory += 0x0001;
+        }
+        else
+        {
+            sb.append("nothing.\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+    * Moves the current room in the direction specified, if allowed.
+    * Returns an error string if movement in the passed direction is not allowed.
+    */
+    private static String move(String direction)
     {
 		Door tempDoor = currRoom.getDoor(direction);
+
+        // move in that direction if the door exists
 		if (tempDoor != null)
+        {
 			currRoom = tempDoor.getBehindDoor();
+            return "";
+        }
+        // if the door doesn't exists, print this out
 		else
-			System.out.println("There is no door to the " + direction + ".");
+        {
+			return "There is no door to the " + direction + ".\n";
+        }
     }
 
-    public static void printHelp()
+    /**
+    * Return the string to be displayed on the help screen
+    */
+    public static String getHelp()
     {
-    	System.out.println("The object of the game is to make a cup of coffee before studying.");
-    	System.out.println("To make such a cup of coffee, you must collect coffee, sugar, and cream.");
-    	System.out.println("Progress through each room by using the \"N\" and \"S\" commands.");
-    	System.out.println("To see if a room contains a coffee component, and to collect said item, use the \"L\" command.");
-    	System.out.println("Once you have all of the ingredients, use the \"D\" command to drink the coffee.");
+        StringBuilder sb = new StringBuilder();
+    	sb.append("The object of the game is to make an outstanding cup of coffee before studying.\n");
+    	sb.append("To make such a cup of coffee, you must collect coffee, sugar, and cream.\n");
+    	sb.append("Progress through each room by using the \"N\" and \"S\" commands.\n");
+    	sb.append("To see if a room contains a coffee ingredient, use the \"L\" command. You will automatically collect it.\n");
+    	sb.append("Once you have all of the ingredients, use the \"D\" command to drink the coffee.\n");
+
+        return sb.toString();
     }
 
-    public static void printInventory(int inv)
+    /**
+    * Returns the String corresponding to the passed inventory integer.
+    */
+    public static String getInventory(int inv)
     {
+        // Inventory is tracked using simple bit masking, with coffee, sugar, and cream being
+        // mapped to the first three bits.
     	int cream, sugar, coffee;
     	int creamMask = 0x0001;
     	int sugarMask = 0x0002;
     	int coffeeMask = 0x0004;
 
+        // mask off the bits corresponding to the ingredients
     	cream = inv & creamMask;
     	sugar = inv & sugarMask;
     	coffee = inv & coffeeMask;
 
+        // build the string based on the value of the inventory bits
     	StringBuilder sb = new StringBuilder();
     	if (coffee > 0)
     		sb.append("You have some caffeinated coffee.\n");
     	else
     		sb.append("YOU HAVE NO COFFEE!\n");
     	if (sugar > 0)
-    		sb.append("You have some creamy cream.\n");
-    	else
-    		sb.append("YOU HAVE NO SUGAR!\n");
-    	if (cream > 0)
     		sb.append("You have some sweet sugar.\n");
     	else
     		sb.append("YOU HAVE NO SUGAR!\n");
+    	if (cream > 0)
+    		sb.append("You have some creamy cream.\n");
+    	else
+    		sb.append("YOU HAVE NO CREAM!\n");
 
-    	System.out.println(sb.toString());
+    	return sb.toString();
     }
 
-	public static void endGame(int code)
+    /**
+    * Prints the proper ending message to the game based upon the passed inventory int value
+    */
+	public static int endGame(int inv)
 	{
-		switch (code)
+        // based on the inventory code, we can determine what ingredients were collected, and therefore
+        // what message to display
+		switch (inv)
 		{
 			case 0: System.out.println("You drink the air, sputter, cough, and wither. You have died.\nYou lose!");
 					break;
@@ -149,7 +245,7 @@ public class CoffeeMakerQuest
 					break;
 			case 4: System.out.println("You drink the coffee. It is pretty low-grade, so without sugar and cream, it tastes really bad.\nYou lose!");
 					break;
-			case 5: System.out.println("You drink the coffee with the cream, but it is too bitter without sugar.\nYou lose!");
+			case 5: System.out.println("You drink the coffee with the cream, but it is too bitter without sugar. You don\'t have time for this!\nYou lose!");
 					break;
 			case 6: System.out.println("You drink the coffee with the sugar. You can\'t put your finger on it,\nbut it is definitely missing something. You lose!");
 					break;
@@ -158,7 +254,8 @@ public class CoffeeMakerQuest
 			default:break;
 		}
 
-		System.out.println("Exiting with code: " + inventory);
-		System.exit(inventory);
+		System.out.println("Exiting with code: " + inv);
+
+		return inv;
 	}
 }
